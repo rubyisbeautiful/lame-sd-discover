@@ -1,0 +1,23 @@
+global
+  maxconn 512
+  log localhost:514 local0 debug
+
+defaults
+  log global
+  timeout connect 5000ms
+  timeout client 5000ms
+  timeout server 5000ms
+
+frontend tcp-in
+  mode tcp
+  bind *:{{env "SERVICE_PORT"}}
+  log global
+  option logasap
+  default_backend servers
+
+backend servers
+  log global
+  balance roundrobin
+  {{with $x := env "SERVICE_NAME"}}{{range service $x}}
+  server {{.ID}} {{.Address}}:{{.Port}}{{end}}
+  {{end}}
